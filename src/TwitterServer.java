@@ -58,7 +58,7 @@ public class TwitterServer {
 
     public synchronized void addSubscriber(String hashtag, Integer client){
         System.out.println(subscriptionsMap);
-        // get the list of Sockets that are subscribed to the hasthag
+        // get the list of Sockets that are subscribed to the hashtag
         ArrayList<Integer> clientList = subscriptionsMap.get(hashtag);
 
         // if the list is empty nobody is subscribed.
@@ -77,11 +77,17 @@ public class TwitterServer {
                 clientList.add(client);
             }
         }
-        System.out.println(subscriptionsMap);
+        System.out.println("New Sub: "+subscriptionsMap);
 
     }
-    public synchronized void removeSubscriber(String hashtag, Socket client){
-
+    public synchronized void removeSubscriber(String hashtag, Integer client){
+        System.out.println("UNSUBTODO : "+subscriptionsMap);
+        if(subscriptionsMap.containsKey(hashtag)){
+            if(subscriptionsMap.get(hashtag).contains(client)){
+                subscriptionsMap.get(hashtag).remove(client);
+            }
+        }
+        System.out.println("UNSUBDONE : "+subscriptionsMap);
     }
 }
 
