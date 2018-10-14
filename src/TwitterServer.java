@@ -11,6 +11,7 @@ public class TwitterServer {
     //  The Key is the hashtag
     // The value is an arrayList of socket port numbers of the clients.
     private HashMap<String, ArrayList<Integer>> subscriptionsMap = new HashMap<>();
+    private HashMap<Integer,Socket> allClients = new HashMap<>();
 
     public static void main(String[] args) {
         if (args.length != 1) {
@@ -28,6 +29,7 @@ public class TwitterServer {
 //        this.listen_port = listen_port;
         try {
             ss = new ServerSocket(port);
+
         } catch (IOException ioEx) {
             System.out.println("unable to create ServerSocket\n");
             System.exit(1);
@@ -40,7 +42,8 @@ public class TwitterServer {
         try {
             while (true) {
                 Socket client = ss.accept();
-                System.out.println("Connection form client accepted");
+                allClients.put(client.getPort(),client);
+                System.out.println("Connection form client: " + client.getPort());
                 // create the serverThread for this client
                 ServerThread serverThread = new ServerThread(client,this);
                 serverThread.start();
@@ -52,12 +55,13 @@ public class TwitterServer {
             System.exit(1);
         }
     }
+    public synchronized Socket getClientSocket(Integer portNumber){
+        return allClients.get(portNumber);
 
-
-
+    }
 
     public synchronized void addSubscriber(String hashtag, Integer client){
-        System.out.println(subscriptionsMap);
+//        System.out.println(subscriptionsMap);
         // get the list of Sockets that are subscribed to the hashtag
         ArrayList<Integer> clientList = subscriptionsMap.get(hashtag);
 
@@ -80,6 +84,11 @@ public class TwitterServer {
         System.out.println("New Sub: "+subscriptionsMap);
 
     }
+
+    public synchronized HashMap<String, ArrayList<Integer>> getSubscriptionMap(){
+        return subscriptionsMap;
+    }
+
     public synchronized void removeSubscriber(String hashtag, Integer client){
         System.out.println("UNSUBTODO : "+subscriptionsMap);
         if(subscriptionsMap.containsKey(hashtag)){
