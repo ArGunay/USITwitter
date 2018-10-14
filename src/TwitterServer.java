@@ -1,7 +1,6 @@
 import java.io.*;
 import java.net.*;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.*;
 
 public class TwitterServer {
 
@@ -43,7 +42,7 @@ public class TwitterServer {
             while (true) {
                 Socket client = ss.accept();
                 allClients.put(client.getPort(),client);
-                System.out.println("Connection form client: " + client.getPort());
+//                System.out.println("Connection form client: " + client.getPort());
                 // create the serverThread for this client
                 ServerThread serverThread = new ServerThread(client,this);
                 serverThread.start();
@@ -81,7 +80,7 @@ public class TwitterServer {
                 clientList.add(client);
             }
         }
-        System.out.println("New Sub: "+subscriptionsMap);
+//        System.out.println("New Sub: "+subscriptionsMap);
 
     }
 
@@ -90,13 +89,13 @@ public class TwitterServer {
     }
 
     public synchronized void removeSubscriber(String hashtag, Integer client){
-        System.out.println("UNSUBTODO : "+subscriptionsMap);
+//        System.out.println("UNSUBTODO : "+subscriptionsMap);
         if(subscriptionsMap.containsKey(hashtag)){
             if(subscriptionsMap.get(hashtag).contains(client)){
                 subscriptionsMap.get(hashtag).remove(client);
             }
         }
-        System.out.println("UNSUBDONE : "+subscriptionsMap);
+//        System.out.println("UNSUBDONE : "+subscriptionsMap);
     }
 }
 

@@ -1,6 +1,5 @@
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.net.Socket;
+import java.io.*;
+import java.net.*;
 import java.util.*;
 
 class ServerThread extends Thread{
@@ -75,23 +74,26 @@ class ServerThread extends Thread{
 
     public void broadcastMessage(String[] message,String parsedMess){
         Set<Integer> clientsSet = new HashSet<>();
-        HashMap<String, ArrayList<Integer>> subs = twitterServer.getSubscriptionMap();
-        Integer sendigClient = this.client.getPort();
 
-        //for each word in the tweet
-        for(String word : message){
-            // if the word is a tag
-            if(word.contains("#")){
-                // get the clients that are subscribed to that tag
-                ArrayList<Integer> ss = subs.get(word);
-                for(int i = 0; i < ss.size(); i++){
-                   // but not the client that is sending the tweet
-                   if(!ss.get(i).equals(sendigClient)){
-                       // and add it to the set of those that will receive it
-                       clientsSet.add(ss.get(i));
-                   }
+        Integer sendigClient = this.client.getPort();
+        try {
+            HashMap<String, ArrayList<Integer>> subs = twitterServer.getSubscriptionMap();
+            //for each word in the tweet
+            for (String word : message) {
+                // if the word is a tag
+                if (word.contains("#")) {
+                    // get the clients that are subscribed to that tag
+                    ArrayList<Integer> ss = subs.get(word);
+                    for (int i = 0; i < ss.size(); i++) {
+                        // but not the client that is sending the tweet
+                        if (!ss.get(i).equals(sendigClient)) {
+                            // and add it to the set of those that will receive it
+                            clientsSet.add(ss.get(i));
+                        }
+                    }
                 }
             }
+        }catch (NullPointerException e){
         }
 
         Iterator iterator = clientsSet.iterator();
@@ -101,6 +103,8 @@ class ServerThread extends Thread{
             try {
                 PrintWriter output = new PrintWriter(clientToSend.getOutputStream(),true);
                 output.println(parsedMess);
+//                output.close();
+
             }catch (IOException e){
                 System.out.println("UNABLE TO SEND TWEET");
             }
