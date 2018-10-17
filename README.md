@@ -1,7 +1,17 @@
-# FirstName LastName
+# Ardil Günay
+
+
 
 ## Protocol Description
-This is where you describe the protocol you implemented.
+
+
 
 ## Limitations
-If there are any limitations, describe them here.
+The limitation of this implementation is that when one 
+client is writing on the console and it receives a message from 
+the server 
+
+
+
+Contributions:
+

@@ -1,5 +1,6 @@
-import java.io.*;
-import java.net.*;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.net.Socket;
 import java.util.*;
 
 class ServerThread extends Thread{
@@ -13,70 +14,86 @@ class ServerThread extends Thread{
 
     @Override
     public void run() {
+        Scanner input =null;
         try {
-            Scanner input = new Scanner(client.getInputStream());
+            input = new Scanner(client.getInputStream());
             String message = parseMessage(input.nextLine());
 
 
-//            while(!message.equals("disconnect")){
             // continue reading
-              while(!message.contains("ENDCONNECTION")){
+//              while(!message.contains("ENDCONNECTION")){
                 // server always prints incoming messages
+            while(true){
                   if(!message.equals("")){
                       System.out.println(message);
                   }
-//                twitterServer.addSubscriber(message,client.getPort());
-//                output.println("Message " + numMessages + ": " + message); // Step 4
                 message = parseMessage(input.nextLine());
             }
-            input.close();
-            disconnectClient();
-        }catch (IOException IOex){
-            System.out.println("Client error");
+
+        }catch (Exception IOex){
+
+            disconnectClient(input);
         }
     }
 
+
+    // parsing the message that has been received by the client
     private String parseMessage(String message){
         String parsedMessage = "";
         String[] words = message.split(" ");
-//        System.out.println(Arrays.toString(words));
-        if (words[0].equals("s")){
-            String hashtag = words[1];
-            twitterServer.addSubscriber(hashtag, this.client.getPort());
 
-        }else if(words[0].equals("u")){
+        // Handling subscription to hashtag
+        if (words[0].equals("SUBSCRIBE")){
+            // Hashtags are words that begin with # character.
+            // Words without it are not taken in consideration as hashtags
+            if(words[1].contains("#")) {
+                String hashtag = words[1];
+                twitterServer.addSubscriber(hashtag, this.client.getPort());
+            }
+
+        // handling unsubscription
+        }else if(words[0].equals("UNSUBSCRIBE")){
             String hashtag = words[1];
             twitterServer.removeSubscriber(hashtag, this.client.getPort());
         }
-        else if(words[0].equals("t")){
+
+        // handling tweeting
+        else if(words[0].equals("TWEET")){
             String[] newMess = Arrays.copyOfRange(words,1,words.length);
             for(String s : newMess){
                 parsedMessage = parsedMessage + " " + s;
             }
 
             broadcastMessage(newMess, parsedMessage.trim());
-//            System.out.println("FATTOSTOCOSO");
         }
 
         return parsedMessage.trim();
     }
 
-    public void disconnectClient(){
+    // Disconnecting the client.
+    public void disconnectClient(Scanner input){
         try {
+            input.close();
             client.close();
 
         }catch (IOException e){
-            System.out.println("Unable To disconnect Client\n");
-            System.exit(1);
+            // unhandled exception.
+//            System.exit(1);
         }
 
     }
 
+
+    // Method for the bradcast of the message to the clients.
     public void broadcastMessage(String[] message,String parsedMess){
+        // Set to collect the clients subscribed to the hashtags in the message.
         Set<Integer> clientsSet = new HashSet<>();
 
+        // number port of the client in order to avoid sending the message to itself
         Integer sendigClient = this.client.getPort();
+
         try {
+
             HashMap<String, ArrayList<Integer>> subs = twitterServer.getSubscriptionMap();
             //for each word in the tweet
             for (String word : message) {
@@ -94,16 +111,18 @@ class ServerThread extends Thread{
                 }
             }
         }catch (NullPointerException e){
+            // unhandeled exc
         }
 
+
         Iterator iterator = clientsSet.iterator();
+
         while(iterator.hasNext()){
             Integer sendToClient = (Integer) iterator.next();
             Socket clientToSend = twitterServer.getClientSocket(sendToClient);
             try {
                 PrintWriter output = new PrintWriter(clientToSend.getOutputStream(),true);
                 output.println(parsedMess);
-//                output.close();
 
             }catch (IOException e){
                 System.out.println("UNABLE TO SEND TWEET");

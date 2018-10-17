@@ -1,9 +1,12 @@
-import java.io.*;
-import java.net.*;
-import java.util.*;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.net.Socket;
+import java.util.Scanner;
 
 public class TwitterClient {
 
+    // MAIN
     public static void main(String[] args) {
         if (args.length != 2) {
             System.err.println("Usage: ./client SERVER_HOST SERVER_PORT");
@@ -12,47 +15,50 @@ public class TwitterClient {
 
         String server_hostname = args[0];
         int server_port = Integer.parseInt(args[1]);
-
+        // Twitter Client object
         TwitterClient tc = new TwitterClient(server_hostname, server_port);
+
+        //method to start the client
         tc.startConnection();
     }
 
+    // Client Socket
     private Socket s = null;
+    // Printwriter to send data to server.
     private PrintWriter dataOut;
+    // Scanner to read data from terminal
     private Scanner dataIn;
 
+
+    // TwitterClient Constructor
     public TwitterClient(String hostname, Integer port){
         try {
+
             s = new Socket(hostname, port);
             dataOut = new PrintWriter(new OutputStreamWriter(s.getOutputStream()), true);
             dataIn = new Scanner(s.getInputStream());
-//            ClientRead cr = new ClientRead(s);
-//            ClientWrite cw = new ClientWrite(s);
-//            cr.start();
-//            cw.start();
+
         }catch (IOException e){
-            System.out.println("Unable toconnect ot server");
+            // Unhandled Exception
         }
     }
 
 
+    // method to initialize the two Threads that handle reading and writing to
+    // the terminal console.
     private void startConnection(){
+        // Start of a new Thread for sending messages written to the console
         Thread sendMessage = new Thread(new Runnable()
         {
             @Override
             public void run() {
                 String msg = "";
-                while (!msg.contains("Disconnect")) {
-
+//                while (!msg.contains("Disconnect")) {
+                while(true){
                     // read the message to deliver.
                     msg = new Scanner(System.in).nextLine();
+                    dataOut.println(msg);
 
-//                    try {
-                        // write on the output stream
-                        dataOut.println(msg);
-//                    } catch (IOException e) {
-//                        e.printStackTrace();
-//                    }
                 }
             }
         });
@@ -63,15 +69,10 @@ public class TwitterClient {
             @Override
             public void run() {
                 String msg = "";
-                while (!msg.contains("Disconnect")) {
-//                    try {
-                        // read the message sent to this client
+//                while (!msg.contains("Disconnect")) {
+                while (true){
                         msg = dataIn.nextLine();
                         System.out.println(msg);
-//                    } catch (IOException e) {
-//
-//                        e.printStackTrace();
-//                    }
                 }
             }
         });
@@ -79,24 +80,5 @@ public class TwitterClient {
         sendMessage.start();
         readMessage.start();
     }
-//    private void startConnection(){
-//        try {
-//
-//            Scanner input = new Scanner(s.getInputStream());
-//            PrintWriter output = new PrintWriter(s.getOutputStream(), true);
-//            Scanner userEntry = new Scanner(System.in);
-//            String message;
-//
-//            while (true) {
-//                if ((message = userEntry.nextLine()) != null){
-//                    output.println(message);
-//                    output.close();
-//                }
-//
-//                System.out.println(input.nextLine());
-//            }
-//        }catch (IOException e){
-//            System.out.println("Unable to start connection");
-//        }
-//    }
+
 }
